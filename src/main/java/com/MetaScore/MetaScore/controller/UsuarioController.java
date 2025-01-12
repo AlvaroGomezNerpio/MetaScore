@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -26,10 +25,10 @@ public class UsuarioController {
 
     // GET /api/usuarios - Obtener todos los usuarios
     @GetMapping
-    public List<UsuarioDTO> getAllUsuarios() {
-        return usuarioRepository.findAll().stream()
-                .map(usuarioMapper::toDto)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<UsuarioDTO>> getAllUsuarios() {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        List<UsuarioDTO> usuarioDTOs = usuarioMapper.toDtoList(usuarios);
+        return ResponseEntity.ok(usuarioDTOs);
     }
 
     // GET /api/usuarios/{id} - Obtener un usuario por su ID
@@ -45,9 +44,8 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<UsuarioDTO> createUsuario(@Valid @RequestBody Usuario usuario) {
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // Devolver 409 Conflict si el email ya existe
+            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409 Conflict si el email ya existe
         }
-
         Usuario savedUsuario = usuarioRepository.save(usuario);
         UsuarioDTO usuarioDTO = usuarioMapper.toDto(savedUsuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioDTO);
@@ -56,21 +54,17 @@ public class UsuarioController {
     // PUT /api/usuarios/{id} - Actualizar un usuario por su ID
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDTO> updateUsuario(@PathVariable Long id, @Valid @RequestBody Usuario usuarioDetails) {
-        Optional<Usuario> optionalUsuario = usuarioRepository.findById(id);
-
-        if (optionalUsuario.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Usuario usuario = optionalUsuario.get();
-        usuario.setUsername(usuarioDetails.getUsername());
-        usuario.setEmail(usuarioDetails.getEmail());
-        usuario.setPassword(usuarioDetails.getPassword());
-        usuario.setRole(usuarioDetails.getRole());
-
-        Usuario updatedUsuario = usuarioRepository.save(usuario);
-        UsuarioDTO usuarioDTO = usuarioMapper.toDto(updatedUsuario);
-        return ResponseEntity.ok(usuarioDTO);
+        return usuarioRepository.findById(id)
+                .map(usuario -> {
+                    usuario.setUsername(usuarioDetails.getUsername());
+                    usuario.setEmail(usuarioDetails.getEmail());
+                    usuario.setPassword(usuarioDetails.getPassword());
+                    usuario.setRole(usuarioDetails.getRole());
+                    Usuario updatedUsuario = usuarioRepository.save(usuario);
+                    UsuarioDTO usuarioDTO = usuarioMapper.toDto(updatedUsuario);
+                    return ResponseEntity.ok(usuarioDTO);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // DELETE /api/usuarios/{id} - Eliminar un usuario por su ID
@@ -79,7 +73,6 @@ public class UsuarioController {
         if (!usuarioRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-
         usuarioRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }

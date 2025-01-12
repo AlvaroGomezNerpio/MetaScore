@@ -15,8 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/resenas")
@@ -38,9 +36,7 @@ public class ReseñaController {
     @GetMapping
     public ResponseEntity<List<ReseñaDTO>> getAllResenas() {
         List<Reseña> resenas = reseñaRepository.findAll();
-        List<ReseñaDTO> resenaDTOs = resenas.stream()
-                .map(reseñaMapper::toDto)
-                .collect(Collectors.toList());
+        List<ReseñaDTO> resenaDTOs = reseñaMapper.toDtoList(resenas);
         return ResponseEntity.ok(resenaDTOs);
     }
 
@@ -85,7 +81,6 @@ public class ReseñaController {
         if (!reseñaRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-
         reseñaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }

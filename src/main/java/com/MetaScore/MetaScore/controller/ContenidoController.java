@@ -6,6 +6,7 @@ import com.MetaScore.MetaScore.model.Contenido;
 import com.MetaScore.MetaScore.repository.ContenidoRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +39,7 @@ public class ContenidoController {
     public ResponseEntity<ContenidoDTO> createContenido(@Valid @RequestBody Contenido contenido) {
         Contenido savedContenido = contenidoRepository.save(contenido);
         ContenidoDTO contenidoDTO = contenidoMapper.toDto(savedContenido);
-        return ResponseEntity.ok(contenidoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(contenidoDTO);
     }
 
     // GET /api/contenidos/{id} - Obtener un contenido por su ID
