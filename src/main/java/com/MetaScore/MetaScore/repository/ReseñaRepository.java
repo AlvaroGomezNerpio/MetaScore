@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface ReseñaRepository extends JpaRepository<Reseña, Long> {
 
-    Optional<Reseña> findByUsuarioIdAndContenidoId(Long usuarioId, Long contenidoId);
-
+    boolean existsByUsuarioIdAndContenidoId(Long usuarioId, Long contenidoId);
 
 }

@@ -2,7 +2,9 @@ package com.MetaScore.MetaScore.controller;
 
 import com.MetaScore.MetaScore.model.Usuario;
 import com.MetaScore.MetaScore.repository.UsuarioRepository;
+import jakarta.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +26,16 @@ public class UsuarioController {
 
     // POST /api/usuarios - Crear un nuevo usuario
     @PostMapping
-    public Usuario createUsuario(@RequestBody Usuario usuario) {
-        return usuarioRepository.save(usuario);
+    public ResponseEntity<Usuario> createUsuario(@Valid @RequestBody Usuario usuario) {
+        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(null); // Devolver 409 Conflict si el email ya existe
+        }
+
+        Usuario savedUsuario = usuarioRepository.save(usuario);
+        return ResponseEntity.ok(savedUsuario);
     }
+
 
     // GET /api/usuarios/{id} - Obtener un usuario por su ID
     @GetMapping("/{id}")

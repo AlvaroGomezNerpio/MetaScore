@@ -2,6 +2,7 @@ package com.MetaScore.MetaScore.controller;
 
 import com.MetaScore.MetaScore.model.Contenido;
 import com.MetaScore.MetaScore.repository.ContenidoRepository;
+import jakarta.validation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class ContenidoController {
 
     // POST /api/contenidos - Crear un nuevo contenido
     @PostMapping
-    public Contenido createContenido(@RequestBody Contenido contenido) {
+    public Contenido createContenido(@Valid @RequestBody Contenido contenido) {
         return contenidoRepository.save(contenido);
     }
 
