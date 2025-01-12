@@ -31,16 +31,20 @@ public class ReseñaController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private ReseñaMapper reseñaMapper;
+
     // GET /api/resenas - Obtener todas las reseñas
     @GetMapping
     public ResponseEntity<List<ReseñaDTO>> getAllResenas() {
         List<Reseña> resenas = reseñaRepository.findAll();
         List<ReseñaDTO> resenaDTOs = resenas.stream()
-                .map(ReseñaMapper::toDto)
+                .map(reseñaMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(resenaDTOs);
     }
 
+    // POST /api/resenas - Crear una nueva reseña
     @PostMapping
     public ResponseEntity<ReseñaDTO> createResena(@Valid @RequestBody Reseña reseña) {
 
@@ -62,20 +66,17 @@ public class ReseñaController {
 
         // Guardar y convertir a DTO
         Reseña savedResena = reseñaRepository.save(reseña);
-        return ResponseEntity.ok(ReseñaMapper.toDto(savedResena));
+        ReseñaDTO reseñaDTO = reseñaMapper.toDto(savedResena);
+        return ResponseEntity.status(HttpStatus.CREATED).body(reseñaDTO);
     }
-
 
     // GET /api/resenas/{id} - Obtener una reseña por su ID
     @GetMapping("/{id}")
     public ResponseEntity<ReseñaDTO> getResenaById(@PathVariable Long id) {
-        Optional<Reseña> reseñaOpt = reseñaRepository.findById(id);
-        if (reseñaOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        ReseñaDTO reseñaDTO = ReseñaMapper.toDto(reseñaOpt.get());
-        return ResponseEntity.ok(reseñaDTO);
+        return reseñaRepository.findById(id)
+                .map(reseñaMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // DELETE /api/resenas/{id} - Eliminar una reseña por su ID
@@ -88,6 +89,4 @@ public class ReseñaController {
         reseñaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
-
-
 }

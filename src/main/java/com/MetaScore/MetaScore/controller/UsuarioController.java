@@ -1,8 +1,10 @@
 package com.MetaScore.MetaScore.controller;
 
+import com.MetaScore.MetaScore.dto.UsuarioDTO;
+import com.MetaScore.MetaScore.mapper.UsuarioMapper;
 import com.MetaScore.MetaScore.model.Usuario;
 import com.MetaScore.MetaScore.repository.UsuarioRepository;
-import jakarta.validation.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -18,36 +21,41 @@ public class UsuarioController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private UsuarioMapper usuarioMapper;
+
     // GET /api/usuarios - Obtener todos los usuarios
     @GetMapping
-    public List<Usuario> getAllUsuarios() {
-        return usuarioRepository.findAll();
+    public List<UsuarioDTO> getAllUsuarios() {
+        return usuarioRepository.findAll().stream()
+                .map(usuarioMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    // GET /api/usuarios/{id} - Obtener un usuario por su ID
+    @GetMapping("/{id}")
+    public ResponseEntity<UsuarioDTO> getUsuarioById(@PathVariable Long id) {
+        return usuarioRepository.findById(id)
+                .map(usuarioMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // POST /api/usuarios - Crear un nuevo usuario
     @PostMapping
-    public ResponseEntity<Usuario> createUsuario(@Valid @RequestBody Usuario usuario) {
+    public ResponseEntity<UsuarioDTO> createUsuario(@Valid @RequestBody Usuario usuario) {
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(null); // Devolver 409 Conflict si el email ya existe
+            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // Devolver 409 Conflict si el email ya existe
         }
 
         Usuario savedUsuario = usuarioRepository.save(usuario);
-        return ResponseEntity.ok(savedUsuario);
-    }
-
-
-    // GET /api/usuarios/{id} - Obtener un usuario por su ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Usuario> getUsuarioById(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioRepository.findById(id);
-        return usuario.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        UsuarioDTO usuarioDTO = usuarioMapper.toDto(savedUsuario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioDTO);
     }
 
     // PUT /api/usuarios/{id} - Actualizar un usuario por su ID
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuarioDetails) {
+    public ResponseEntity<UsuarioDTO> updateUsuario(@PathVariable Long id, @Valid @RequestBody Usuario usuarioDetails) {
         Optional<Usuario> optionalUsuario = usuarioRepository.findById(id);
 
         if (optionalUsuario.isEmpty()) {
@@ -61,7 +69,8 @@ public class UsuarioController {
         usuario.setRole(usuarioDetails.getRole());
 
         Usuario updatedUsuario = usuarioRepository.save(usuario);
-        return ResponseEntity.ok(updatedUsuario);
+        UsuarioDTO usuarioDTO = usuarioMapper.toDto(updatedUsuario);
+        return ResponseEntity.ok(usuarioDTO);
     }
 
     // DELETE /api/usuarios/{id} - Eliminar un usuario por su ID
