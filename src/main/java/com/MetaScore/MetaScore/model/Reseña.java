@@ -21,13 +21,14 @@ public class Reseña {
     @Column(length = 1000)
     private String comentario;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
     @ManyToOne
     @JoinColumn(name = "contenido_id", nullable = false)
     private Contenido contenido;
+
 
     public Long getId() {
         return id;
