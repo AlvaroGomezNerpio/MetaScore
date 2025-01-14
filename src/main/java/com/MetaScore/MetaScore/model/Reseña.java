@@ -13,6 +13,8 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Reseña {
 
     @Id
@@ -40,44 +42,4 @@ public class Reseña {
     @NotNull(message = "El contenido no puede ser nulo")
     private Contenido contenido;
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public int getPuntuacion() {
-        return puntuacion;
-    }
-
-    public void setPuntuacion(int puntuacion) {
-        this.puntuacion = puntuacion;
-    }
-
-    public String getComentario() {
-        return comentario;
-    }
-
-    public void setComentario(String comentario) {
-        this.comentario = comentario;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public Contenido getContenido() {
-        return contenido;
-    }
-
-    public void setContenido(Contenido contenido) {
-        this.contenido = contenido;
-    }
 }
